@@ -19,6 +19,7 @@ export const STORAGE_KEYS = {
   logs: 'fsm:logs',
   cards: 'fsm:cards',
   unlocked: 'fsm:unlocked',
+  timer: 'fsm:timer',
 } as const
 
 /** 12 种成就徽章定义 */

@@ -50,3 +50,12 @@ export function shortLabel(key: string): string {
   const [, m, d] = key.split('-')
   return `${Number(m)}/${Number(d)}`
 }
+
+/** 毫秒 → HH:MM:SS 计时显示 */
+export function formatHms(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000)
+  const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0')
+  const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0')
+  const s = String(totalSeconds % 60).padStart(2, '0')
+  return `${h}:${m}:${s}`
+}

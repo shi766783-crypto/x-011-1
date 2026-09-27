@@ -22,6 +22,12 @@ const router = createRouter({
           meta: { title: '学习计划' },
         },
         {
+          path: 'focus',
+          name: 'focus',
+          component: () => import('@/views/FocusView.vue'),
+          meta: { title: '专注计时' },
+        },
+        {
           path: 'logs',
           name: 'logs',
           component: () => import('@/views/LogsView.vue'),

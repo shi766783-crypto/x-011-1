@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import type { MasteryLevel, StudyLog } from '@/types'
@@ -9,10 +10,13 @@ import TrendChart from '@/components/TrendChart.vue'
 import { useLogsStore } from '@/stores/logs'
 import { usePlansStore } from '@/stores/plans'
 import { useStatsStore } from '@/stores/stats'
+import { useTimerStore } from '@/stores/timer'
 
+const router = useRouter()
 const logsStore = useLogsStore()
 const plansStore = usePlansStore()
 const statsStore = useStatsStore()
+const timerStore = useTimerStore()
 
 const dialogVisible = ref(false)
 const editingId = ref<string | null>(null)
@@ -91,13 +95,30 @@ function removeLog(log: StudyLog): void {
   logsStore.removeLog(log.id)
   ElMessage.success('日志已删除')
 }
+
+/** 从专注计时跳转过来时，自动打开表单并带入本次时长和内容 */
+onMounted(() => {
+  const pending = timerStore.consumePendingLog()
+  if (!pending) return
+  editingId.value = null
+  Object.assign(form, emptyForm(), {
+    date: pending.date,
+    planId: pending.planId,
+    content: pending.content,
+    duration: pending.duration,
+  })
+  dialogVisible.value = true
+})
 </script>
 
 <template>
   <div>
     <div class="page-header">
       <h2 class="page-title">学习日志</h2>
-      <el-button type="primary" @click="openCreate">写日志</el-button>
+      <div>
+        <el-button @click="router.push('/focus')">⏱️ 专注计时</el-button>
+        <el-button type="primary" @click="openCreate">写日志</el-button>
+      </div>
     </div>
 
     <div class="card-grid summary">
