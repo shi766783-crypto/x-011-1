@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 import { useAchievementsStore } from '@/stores/achievements'
 import { useCardsStore } from '@/stores/cards'
+import { useFocusStore } from '@/stores/focus'
 import { useLogsStore } from '@/stores/logs'
 import { usePlansStore } from '@/stores/plans'
 
@@ -9,6 +10,7 @@ const achievementsStore = useAchievementsStore()
 const plansStore = usePlansStore()
 const logsStore = useLogsStore()
 const cardsStore = useCardsStore()
+const focusStore = useFocusStore()
 
 // 数据变更后统一扫描成就解锁，避免实体 store 反向依赖成就 store
 watch(
@@ -16,6 +18,18 @@ watch(
   () => achievementsStore.checkAll(),
   { deep: true, immediate: true },
 )
+
+// 计时会话存在时，关闭/刷新页面前提示，避免误丢计时
+function onBeforeUnload(event: BeforeUnloadEvent): void {
+  if (focusStore.session) {
+    event.preventDefault()
+    // 兼容旧版浏览器：部分内核只认 returnValue
+    event.returnValue = ''
+  }
+}
+
+onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
+onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload))
 </script>
 
 <template>

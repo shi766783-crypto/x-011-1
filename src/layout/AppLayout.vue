@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { formatHms } from '@/utils/date'
+import { useFocusStore } from '@/stores/focus'
 
 interface NavItem {
   path: string
@@ -11,6 +13,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: '/dashboard', title: '学习看板', icon: '📊' },
   { path: '/plans', title: '学习计划', icon: '🎯' },
+  { path: '/focus', title: '专注计时', icon: '⏱️' },
   { path: '/logs', title: '学习日志', icon: '📝' },
   { path: '/cards', title: '知识卡片', icon: '📚' },
   { path: '/review', title: '卡片复习', icon: '🔁' },
@@ -21,7 +24,12 @@ const navItems: NavItem[] = [
 
 const route = useRoute()
 const router = useRouter()
+const focusStore = useFocusStore()
 const activePath = computed(() => route.path)
+
+// 计时进行中且不在计时页时，显示悬浮计时条，点击可回到计时页
+const showIndicator = computed(() => focusStore.session !== null && route.path !== '/focus')
+const indicatorTime = computed(() => formatHms(focusStore.elapsedMs))
 
 function navigate(path: string): void {
   router.push(path)
@@ -46,6 +54,18 @@ function navigate(path: string): void {
     <el-main class="main">
       <router-view />
     </el-main>
+
+    <div
+      v-if="showIndicator"
+      class="focus-indicator"
+      :class="{ paused: !focusStore.running }"
+      title="返回专注计时"
+      @click="navigate('/focus')"
+    >
+      <span class="pulse" />
+      <span class="time">{{ indicatorTime }}</span>
+      <span v-if="!focusStore.running" class="state">已暂停</span>
+    </div>
   </el-container>
 </template>
 
@@ -100,5 +120,50 @@ function navigate(path: string): void {
 .main {
   background: #f5f7fa;
   padding: 24px;
+}
+
+.focus-indicator {
+  position: fixed;
+  top: 16px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: #1f2d3d;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 20%);
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-indicator:hover {
+  background: #2b3a4a;
+}
+
+.focus-indicator .pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #67c23a;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.focus-indicator.paused .pulse {
+  background: #e6a23c;
+  animation: none;
+}
+
+.focus-indicator .state {
+  font-size: 12px;
+  color: #e6a23c;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
 }
 </style>

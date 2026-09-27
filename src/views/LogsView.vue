@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import type { MasteryLevel, StudyLog } from '@/types'
 import { today } from '@/utils/date'
 import StatCard from '@/components/StatCard.vue'
 import TrendChart from '@/components/TrendChart.vue'
+import { useFocusStore } from '@/stores/focus'
 import { useLogsStore } from '@/stores/logs'
 import { usePlansStore } from '@/stores/plans'
 import { useStatsStore } from '@/stores/stats'
@@ -13,6 +14,7 @@ import { useStatsStore } from '@/stores/stats'
 const logsStore = useLogsStore()
 const plansStore = usePlansStore()
 const statsStore = useStatsStore()
+const focusStore = useFocusStore()
 
 const dialogVisible = ref(false)
 const editingId = ref<string | null>(null)
@@ -91,6 +93,20 @@ function removeLog(log: StudyLog): void {
   logsStore.removeLog(log.id)
   ElMessage.success('日志已删除')
 }
+
+// 结束专注计时后跳转至此：取出草稿，自动打开并预填日志表单
+onMounted(() => {
+  const draft = focusStore.consumePendingLog()
+  if (!draft) return
+  editingId.value = null
+  Object.assign(form, emptyForm(), {
+    content: draft.content,
+    planId: draft.planId ?? '',
+    duration: draft.duration,
+  })
+  dialogVisible.value = true
+  ElMessage.success(`已带入本次专注时长 ${draft.duration} 小时`)
+})
 </script>
 
 <template>

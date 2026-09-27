@@ -57,6 +57,28 @@ export interface StudyLog {
   createdAt: string
 }
 
+/** 专注计时会话（持久化到本地，切页/刷新不丢失） */
+export interface FocusSession {
+  /** 学习内容描述 */
+  content: string
+  /** 关联计划（可选） */
+  planId?: string
+  /** 已累计的专注毫秒数（不含进行中的当前段） */
+  accumulatedMs: number
+  /** 当前计时段的开始时间戳；null 表示已暂停 */
+  startedAt: number | null
+  /** 会话创建时间戳 */
+  createdAt: number
+}
+
+/** 结束计时后待写入日志表单的草稿 */
+export interface FocusLogDraft {
+  content: string
+  planId?: string
+  /** 本次专注时长（小时） */
+  duration: number
+}
+
 /** 卡片掌握程度 */
 export type CardMastery = '生疏' | '熟悉' | '精通'
 
